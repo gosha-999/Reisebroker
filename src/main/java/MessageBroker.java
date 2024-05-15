@@ -7,7 +7,7 @@ public class MessageBroker {
         return instance;
     }
 
-    public void sendMessage(HotelBookingService service, String hotelId, int numberOfRooms, TravelBroker travelBroker, Configuration config) {
+    public void sendMessage(HotelBookingService service, String hotelId, int numberOfRooms, TravelBroker travelBroker) {
         new Thread(() -> {
             try {
                 Thread.sleep(1000); // Simulierte Latenz

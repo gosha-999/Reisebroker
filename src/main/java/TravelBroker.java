@@ -7,6 +7,8 @@ public class TravelBroker {
     private static TravelBroker instance = new TravelBroker();
     private List<String> bookingResults;
     private List<BookingRequest> successfullyBooked;
+    private static final int MAX_RETRIES = 3;
+    private static final int RETRY_DELAY = 3000; // Verzögerung in Millisekunden (3 Sekunden)
     private ExecutorService executorService;
 
     private TravelBroker() {
@@ -19,33 +21,33 @@ public class TravelBroker {
         return instance;
     }
 
-    public synchronized void bookTravel(List<BookingRequest> requests, Configuration config) {
+    public synchronized void bookTravel(List<BookingRequest> requests) {
         Logger.info("Beginne mit der Buchung der Reise mit " + requests.size() + " Anfragen.");
         bookingResults.clear();
         successfullyBooked.clear();
         for (BookingRequest request : requests) {
-            executorService.submit(() -> attemptBooking(request, 0, config)); // Parallelisieren der Buchungen
+            executorService.submit(() -> attemptBooking(request, 0)); // Parallelisieren der Buchungen
         }
     }
 
-    private void attemptBooking(BookingRequest request, int attempt, Configuration config) {
-        if (attempt >= config.maxRetries) {
+    private void attemptBooking(BookingRequest request, int attempt) {
+        if (attempt >= MAX_RETRIES) {
             handleBookingError(request);
             return;
         }
 
         try {
             Logger.debug("Senden der Buchungsanfrage für Hotel " + request.getHotelId() + ", Zimmer: " + request.getNumberOfRooms() + ". Versuch: " + (attempt + 1));
-            MessageBroker.getInstance().sendMessage(request.getService(), request.getHotelId(), request.getNumberOfRooms(), this, config);
+            MessageBroker.getInstance().sendMessage(request.getService(), request.getHotelId(), request.getNumberOfRooms(), this);
             successfullyBooked.add(request);
         } catch (Exception e) {
             Logger.error("Fehler bei der Buchung für Hotel: " + request.getHotelId() + " beim Versuch " + (attempt + 1) + ". Fehler: " + e.getMessage());
             try {
-                Thread.sleep(config.retryDelay); // Verzögerung zwischen Wiederholungsversuchen
+                Thread.sleep(RETRY_DELAY); // Verzögerung zwischen Wiederholungsversuchen
             } catch (InterruptedException ie) {
                 ie.printStackTrace();
             }
-            attemptBooking(request, attempt + 1, config);
+            attemptBooking(request, attempt + 1);
         }
     }
 
@@ -81,3 +83,4 @@ public class TravelBroker {
         bookingResults.forEach(Logger::info);
     }
 }
+
