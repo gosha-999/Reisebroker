@@ -1,10 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientSystem {
-    private static final int MIN_DELAY = 3000; // Minimale Verzögerung in Millisekunden (3 Sekunden)
-    private static final int MAX_DELAY = 6000; // Maximale Verzögerung in Millisekunden (6 Sekunden)
+    private static final int ARRIVAL_RATE = Integer.parseInt(Config.getProperty("arrivalRate"));
+    private static AtomicInteger tripCounter = new AtomicInteger(1); // Zähler für die Reisen
 
     public static void main(String[] args) {
         // Erstellen und Hinzufügen von HotelBookingServices und Hotels
@@ -23,45 +24,53 @@ public class ClientSystem {
         service2.addHotel(new Hotel("H009", "Hotel 9", 30));
         service2.addHotel(new Hotel("H010", "Hotel 10", 20));
 
+        // Liste aller Hotels mit den zugehörigen Services
+        List<Hotel> allHotels = new ArrayList<>();
+        allHotels.addAll(service1.getHotels());
+        allHotels.addAll(service2.getHotels());
+
+        // Liste der Services
+        List<HotelBookingService> services = new ArrayList<>();
+        services.add(service1);
+        services.add(service2);
+
         // Starten einer Endlosschleife zur kontinuierlichen Generierung von Buchungsanfragen
         while (true) {
             List<Thread> threads = new ArrayList<>();
-            threads.add(new Thread(() -> sendTripRequests("Reise 1", createTrip(service1, new String[]{"H001", "H002", "H003", "H004", "H005"}))));
-            threads.add(new Thread(() -> sendTripRequests("Reise 2", createTrip(service2, new String[]{"H006", "H007", "H008", "H009", "H010"}))));
+            for (int i = 0; i < 4; i++) { // Vier gleichzeitige Reisen
+                threads.add(new Thread(() -> sendTripRequests(createTrip(services, allHotels))));
+            }
 
             // Starten der Threads mit zufälligen Verzögerungen
             for (Thread thread : threads) {
                 thread.start();
                 try {
-                    int delay = MIN_DELAY + new Random().nextInt(MAX_DELAY - MIN_DELAY); // Zufällige Verzögerung zwischen den Starts der Reisen
+                    int delay = ARRIVAL_RATE + new Random().nextInt(ARRIVAL_RATE); // Zufällige Verzögerung zwischen den Starts der Reisen
                     Thread.sleep(delay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-
-            // Verzögerung zwischen den Startzyklen der Reisen
-            try {
-                Thread.sleep(10000); // 10 Sekunden Verzögerung vor dem nächsten Zyklus
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 
-    private static List<BookingRequest> createTrip(HotelBookingService service, String[] hotelIds) {
+    private static List<BookingRequest> createTrip(List<HotelBookingService> services, List<Hotel> allHotels) {
         Random random = new Random();
         List<BookingRequest> requests = new ArrayList<>();
-        for (String hotelId : hotelIds) {
+        for (int i = 0; i < 5; i++) { // Fünf verschiedene Hotels pro Reise
+            Hotel hotel = allHotels.get(random.nextInt(allHotels.size()));
             int rooms = random.nextInt(5) + 1; // Zufällige Anzahl von Zimmern (1 bis 5)
-            requests.add(new BookingRequest(service, hotelId, rooms));
+            HotelBookingService service = services.stream().filter(s -> s.hasHotel(hotel)).findFirst().orElse(null);
+            requests.add(new BookingRequest(service, hotel.getId(), rooms));
         }
         return requests;
     }
 
-    private static void sendTripRequests(String tripName, List<BookingRequest> requests) {
+    private static void sendTripRequests(List<BookingRequest> requests) {
         TravelBroker travelBroker = TravelBroker.getInstance();
-        Logger.info("Starte Anfragen für " + tripName);
+        int tripNumber = tripCounter.getAndIncrement(); // Fortlaufende Nummer für die Reise
+        String tripName = "Reise " + tripNumber;
+        Logger.info("ClientSystem", "Starte Anfragen für " + tripName);
         travelBroker.bookTravel(requests);
     }
 }

@@ -19,15 +19,15 @@ public class Logger {
         return dateFormat.format(new Date());
     }
 
-    public static void info(String message) {
-        System.out.println(GREEN + "INFO [" + getTimeStamp() + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    public static void info(String component, String message) {
+        System.out.println(GREEN + "INFO [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
     }
 
-    public static void error(String message) {
-        System.err.println(RED + "ERROR [" + getTimeStamp() + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    public static void error(String component, String message) {
+        System.err.println(RED + "ERROR [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
     }
 
-    public static void debug(String message) {
-        System.out.println(BLUE + "DEBUG [" + getTimeStamp() + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    public static void debug(String component, String message) {
+        System.out.println(BLUE + "DEBUG [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
     }
 }

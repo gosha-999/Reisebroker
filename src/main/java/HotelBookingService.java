@@ -1,3 +1,4 @@
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -7,8 +8,9 @@ import java.util.concurrent.Executors;
 public class HotelBookingService {
     private Map<String, Hotel> hotels;
     private ExecutorService executorService;
-    private static final double TECHNICAL_FAILURE_PROBABILITY = 0.1; // Wahrscheinlichkeit eines technischen Fehlers
-    private static final double BUSINESS_FAILURE_PROBABILITY = 0.2; // Wahrscheinlichkeit eines fachlichen Fehlers
+    private static final double TECHNICAL_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("technicalFailureProbability"));
+    private static final double BUSINESS_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("businessFailureProbability"));
+    private static final int PROCESSING_TIME = Integer.parseInt(Config.getProperty("processingTime"));
 
     public HotelBookingService() {
 
@@ -20,7 +22,33 @@ public class HotelBookingService {
         hotels.put(hotel.getId(), hotel);
     }
 
-    public synchronized String bookHotelRooms(String hotelId, int numberOfRooms) throws Exception {
+    public Collection<Hotel> getHotels() {
+        return hotels.values();
+    }
+
+    public boolean hasHotel(Hotel hotel) {
+        return hotels.containsKey(hotel.getId());
+    }
+
+    public void processBookingRequest(BookingRequest request, int attempt, boolean isConfirmation) {
+        executorService.submit(() -> {
+            try {
+                String response;
+                if (isConfirmation) {
+                    response = confirmBooking(request.getHotelId(), request.getNumberOfRooms());
+                } else {
+                    response = bookHotelRooms(request.getHotelId(), request.getNumberOfRooms());
+                }
+                Logger.debug("HotelBookingService", "Antwort an MessageBroker für Hotel: " + request.getHotelId());
+                MessageBroker.getInstance().sendResponse(response, request, TravelBroker.getInstance(), attempt, isConfirmation);
+            } catch (Exception e) {
+                Logger.debug("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel: " + request.getHotelId());
+                MessageBroker.getInstance().sendResponse("Fehler: " + e.getMessage(), request, TravelBroker.getInstance(), attempt, isConfirmation);
+            }
+        });
+    }
+
+    private synchronized String bookHotelRooms(String hotelId, int numberOfRooms) throws Exception {
         if (new Random().nextDouble() < TECHNICAL_FAILURE_PROBABILITY) {
             throw new Exception("Technischer Fehler bei der Buchung von Hotel " + hotelId);
         }
@@ -38,13 +66,27 @@ public class HotelBookingService {
         }
     }
 
+    private synchronized String confirmBooking(String hotelId, int numberOfRooms) throws Exception {
+        if (new Random().nextDouble() < TECHNICAL_FAILURE_PROBABILITY) {
+            throw new Exception("Technischer Fehler bei der Bestätigung von Hotel " + hotelId);
+        }
+        Hotel hotel = hotels.get(hotelId);
+        if (hotel == null) {
+            throw new Exception("Hotel nicht gefunden: " + hotelId);
+        }
+        if (hotel.getAvailableRooms() < numberOfRooms) {
+            throw new Exception("Fachlicher Fehler: Zimmer nicht verfügbar");
+        }
+        return "Bestätigung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName();
+    }
+
     public synchronized void cancelBooking(String hotelId, int numberOfRooms) {
         Hotel hotel = hotels.get(hotelId);
         if (hotel != null) {
             hotel.cancelBooking(numberOfRooms);
-            Logger.info("Stornierung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName());
+            Logger.info("HotelBookingService", "Stornierung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName());
         } else {
-            Logger.error("Hotel nicht gefunden: " + hotelId);
+            Logger.error("HotelBookingService", "Hotel nicht gefunden: " + hotelId);
         }
     }
 }

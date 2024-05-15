@@ -20,7 +20,7 @@ public class TravelBroker {
     }
 
     public synchronized void bookTravel(List<BookingRequest> requests) {
-        Logger.info("Beginne mit der Buchung der Reise mit " + requests.size() + " Anfragen.");
+        Logger.info("TravelBroker", "Beginne mit der Buchung der Reise mit " + requests.size() + " Anfragen.");
         bookingResults.clear();
         successfullyBooked.clear();
         for (BookingRequest request : requests) {
@@ -35,10 +35,10 @@ public class TravelBroker {
         }
 
         try {
-            Logger.debug("Senden der Buchungsanfrage für Hotel " + request.getHotelId() + ", Zimmer: " + request.getNumberOfRooms() + ". Versuch: " + (attempt + 1));
-            MessageBroker.getInstance().sendMessage(request, this, attempt);
+            Logger.debug("TravelBroker", "Senden der Buchungsanfrage für Hotel " + request.getHotelId() + ", Zimmer: " + request.getNumberOfRooms() + ". Versuch: " + (attempt + 1));
+            MessageBroker.getInstance().sendMessage(request, this, attempt, false);
         } catch (Exception e) {
-            Logger.error("Fehler bei der Buchung für Hotel: " + request.getHotelId() + " beim Versuch " + (attempt + 1) + ". Fehler: " + e.getMessage());
+            Logger.error("TravelBroker", "Fehler bei der Buchung für Hotel: " + request.getHotelId() + " beim Versuch " + (attempt + 1) + ". Fehler: " + e.getMessage());
             try {
                 Thread.sleep(3000); // Verzögerung zwischen Wiederholungsversuchen
             } catch (InterruptedException ie) {
@@ -48,46 +48,70 @@ public class TravelBroker {
         }
     }
 
+    private void attemptConfirmation(BookingRequest request, int attempt) {
+        if (attempt >= 3) {
+            handleBookingError(request);
+            return;
+        }
+
+        try {
+            Logger.debug("TravelBroker", "Anfordern der Bestätigung für Hotel " + request.getHotelId() + ", Zimmer: " + request.getNumberOfRooms() + ". Versuch: " + (attempt + 1));
+            MessageBroker.getInstance().sendMessage(request, this, attempt, true);
+        } catch (Exception e) {
+            Logger.error("TravelBroker", "Fehler beim Anfordern der Bestätigung für Hotel: " + request.getHotelId() + " beim Versuch " + (attempt + 1) + ". Fehler: " + e.getMessage());
+            try {
+                Thread.sleep(3000); // Verzögerung zwischen Wiederholungsversuchen
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+            attemptConfirmation(request, attempt + 1);
+        }
+    }
+
     private void handleBookingError(BookingRequest failedRequest) {
-        Logger.error("Beginne Rollback aufgrund eines Fehlers bei der Buchung für " + failedRequest.getHotelId());
+        Logger.error("TravelBroker", "Beginne Rollback aufgrund eines Fehlers bei der Buchung für " + failedRequest.getHotelId());
         rollback();
+        finalizeBooking(false);  // Finalize with rollback
     }
 
     private void rollback() {
         for (BookingRequest request : successfullyBooked) {
-            Logger.debug("Führe Rollback für Buchung aus: " + request.getHotelId() + ", Zimmer: " + request.getNumberOfRooms());
+            Logger.debug("TravelBroker", "Führe Rollback für Buchung aus: " + request.getHotelId() + ", Zimmer: " + request.getNumberOfRooms());
             request.getService().cancelBooking(request.getHotelId(), request.getNumberOfRooms());
         }
-        Logger.info("Rollback abgeschlossen.");
+        Logger.info("TravelBroker", "Rollback abgeschlossen.");
     }
 
-    public synchronized void receiveMessage(String message, BookingRequest request, int attempt) {
+    public synchronized void receiveMessage(String message, BookingRequest request, int attempt, boolean isConfirmation) {
         if (message.startsWith("Fehler: Technischer Fehler")) {
-            Logger.info("Erneuter Versuch für Hotel " + request.getHotelId() + " wegen technischem Fehler. Versuch: " + (attempt + 1));
+            Logger.info("TravelBroker", "Erneuter Versuch für Hotel " + request.getHotelId() + " wegen technischem Fehler. Versuch: " + (attempt + 1));
             attemptBooking(request, attempt + 1);
         } else if (message.startsWith("Fehler: Fachlicher Fehler")) {
-            Logger.info("Erneuter Versuch für Hotel " + request.getHotelId() + " wegen fachlichem Fehler. Versuch: " + (attempt + 1));
-            attemptBooking(request, attempt + 1);
+            if (isConfirmation) {
+                Logger.info("TravelBroker", "Erneuter Versuch, Bestätigung für Hotel " + request.getHotelId() + " anzufordern. Versuch: " + (attempt + 1));
+                attemptConfirmation(request, attempt + 1);
+            } else {
+                Logger.info("TravelBroker", "Fachlicher Fehler bei der Buchung für Hotel " + request.getHotelId() + ". Bestätigung wird erneut angefordert. Versuch: " + (attempt + 1));
+                attemptConfirmation(request, attempt + 1);
+            }
         } else {
-            Logger.info("Erhaltene Nachricht: " + message);
+            Logger.info("TravelBroker", "Erhaltene Nachricht: " + message);
             bookingResults.add(message);
             if (message.contains("erfolgreich")) {
                 successfullyBooked.add(request);
             }
-            if (bookingResults.size() == successfullyBooked.size()) {
-                finalizeBooking();
+            if (bookingResults.size() == request.getService().getHotels().size()) {
+                finalizeBooking(true);
             }
         }
     }
 
-    private void finalizeBooking() {
-        boolean allSuccessful = bookingResults.stream().allMatch(result -> result.contains("erfolgreich"));
+    private void finalizeBooking(boolean allSuccessful) {
         if (allSuccessful) {
-            Logger.info("Alle Buchungen erfolgreich abgeschlossen.");
+            Logger.info("TravelBroker", "Alle Buchungen der Reise erfolgreich abgeschlossen.");
         } else {
-            Logger.error("Einige Buchungen fehlgeschlagen. Rollback wird eingeleitet.");
+            Logger.error("TravelBroker", "Einige Buchungen der Reise fehlgeschlagen. Rollback wird eingeleitet.");
             rollback();
         }
-        bookingResults.forEach(Logger::info);
     }
 }
