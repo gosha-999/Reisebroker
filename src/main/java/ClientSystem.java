@@ -16,14 +16,20 @@ public class ClientSystem {
         service1.addHotel(new Hotel("H001", "Hotel California", 50));
         service1.addHotel(new Hotel("H002", "Hotel Nevada", 30));
         service1.addHotel(new Hotel("H003", "Hotel Texas", 20));
+        service1.addHotel(new Hotel("H004", "Hotel Arizona", 40));
+        service1.addHotel(new Hotel("H005", "Hotel Colorado", 35));
 
-        service2.addHotel(new Hotel("H004", "Hotel Florida", 40));
-        service2.addHotel(new Hotel("H005", "Hotel New York", 25));
-        service2.addHotel(new Hotel("H006", "Hotel Chicago", 35));
+        service2.addHotel(new Hotel("H006", "Hotel Florida", 40));
+        service2.addHotel(new Hotel("H007", "Hotel New York", 25));
+        service2.addHotel(new Hotel("H008", "Hotel Chicago", 35));
+        service2.addHotel(new Hotel("H009", "Hotel Michigan", 30));
+        service2.addHotel(new Hotel("H010", "Hotel Ohio", 20));
 
-        service3.addHotel(new Hotel("H007", "Hotel Seattle", 45));
-        service3.addHotel(new Hotel("H008", "Hotel Denver", 50));
-        service3.addHotel(new Hotel("H009", "Hotel Boston", 30));
+        service3.addHotel(new Hotel("H011", "Hotel Seattle", 45));
+        service3.addHotel(new Hotel("H012", "Hotel Denver", 50));
+        service3.addHotel(new Hotel("H013", "Hotel Boston", 30));
+        service3.addHotel(new Hotel("H014", "Hotel Philadelphia", 25));
+        service3.addHotel(new Hotel("H015", "Hotel Las Vegas", 40));
 
         // Starten einer Endlosschleife zur kontinuierlichen Generierung von Buchungsanfragen
         for (int i = 0; i < NUM_THREADS; i++) {
@@ -33,9 +39,9 @@ public class ClientSystem {
                 while (true) {
                     List<Thread> threads = new ArrayList<>();
                     int finalTripCounter = tripCounter;
-                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service1, new String[]{"H001", "H002", "H003"}))));
-                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service2, new String[]{"H004", "H005", "H006"}))));
-                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service3, new String[]{"H007", "H008", "H009"}))));
+                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service1, new String[]{"H001", "H002", "H003", "H004", "H005"}))));
+                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service2, new String[]{"H006", "H007", "H008", "H009", "H010"}))));
+                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service3, new String[]{"H011", "H012", "H013", "H014", "H015"}))));
                     tripCounter++;
 
                     // Starten der Threads mit zufälligen Verzögerungen
