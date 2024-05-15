@@ -18,7 +18,7 @@ public class Hotel {
     }
 
     public synchronized void cancelBooking(int number) {
-        availableRooms += number;  // Zimmeranzahl wieder erhöhen
+        availableRooms += number; // Zimmeranzahl wieder erhöhen
     }
 
     public String getId() {

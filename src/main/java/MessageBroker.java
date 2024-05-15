@@ -7,11 +7,11 @@ public class MessageBroker {
         return instance;
     }
 
-    public void sendMessage(HotelBookingService service, String hotelId, int numberOfRooms, TravelBroker travelBroker) {
+    public void sendMessage(BookingRequest request, TravelBroker travelBroker) {
         new Thread(() -> {
             try {
                 Thread.sleep(1000); // Simulierte Latenz
-                String response = service.bookHotelRooms(hotelId, numberOfRooms);
+                String response = request.getService().bookHotelRooms(request.getHotelId(), request.getNumberOfRooms());
                 travelBroker.receiveMessage(response);
             } catch (Exception e) {
                 travelBroker.receiveMessage("Fehler: " + e.getMessage());

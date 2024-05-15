@@ -5,6 +5,7 @@ import java.util.Random;
 public class ClientSystem {
     private static final int MIN_DELAY = 3000; // Minimale Verzögerung in Millisekunden (3 Sekunden)
     private static final int MAX_DELAY = 6000; // Maximale Verzögerung in Millisekunden (6 Sekunden)
+    private static final int NUM_THREADS = 10; // Anzahl der Threads, die gleichzeitig laufen
 
     public static void main(String[] args) {
         // Erstellen und Hinzufügen von HotelBookingServices und Hotels
@@ -24,39 +25,48 @@ public class ClientSystem {
         service3.addHotel(new Hotel("H008", "Hotel Denver", 50));
         service3.addHotel(new Hotel("H009", "Hotel Boston", 30));
 
-        // Starten eines Endlosschleifen-Threads zur kontinuierlichen Generierung von Buchungsanfragen
-        new Thread(() -> {
-            int tripCounter = 1;
-            Random random = new Random();
-            while (true) {
-                List<Thread> threads = new ArrayList<>();
-                int finalTripCounter = tripCounter;
-                threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service1, new String[]{"H001", "H002", "H003"}))));
-                threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service2, new String[]{"H004", "H005", "H006"}))));
-                threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service3, new String[]{"H007", "H008", "H009"}))));
-                tripCounter++;
+        // Starten einer Endlosschleife zur kontinuierlichen Generierung von Buchungsanfragen
+        for (int i = 0; i < NUM_THREADS; i++) {
+            new Thread(() -> {
+                int tripCounter = 1;
+                Random random = new Random();
+                while (true) {
+                    List<Thread> threads = new ArrayList<>();
+                    int finalTripCounter = tripCounter;
+                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service1, new String[]{"H001", "H002", "H003"}))));
+                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service2, new String[]{"H004", "H005", "H006"}))));
+                    threads.add(new Thread(() -> sendTripRequests("Reise " + finalTripCounter, createTrip(service3, new String[]{"H007", "H008", "H009"}))));
+                    tripCounter++;
 
-                // Starten der Threads mit zufälligen Verzögerungen
-                for (Thread thread : threads) {
-                    thread.start();
+                    // Starten der Threads mit zufälligen Verzögerungen
+                    for (Thread thread : threads) {
+                        thread.start();
+                        try {
+                            int delay = MIN_DELAY + random.nextInt(MAX_DELAY - MIN_DELAY); // Zufällige Verzögerung zwischen den Starts der Reisen
+                            Thread.sleep(delay);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // Warten auf Abschluss der Threads
+                    for (Thread thread : threads) {
+                        try {
+                            thread.join();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // Verzögerung zwischen den Startzyklen der Reisen
                     try {
-                        int delay = MIN_DELAY + random.nextInt(MAX_DELAY - MIN_DELAY); // Zufällige Verzögerung zwischen den Starts der Reisen
-                        Thread.sleep(delay);
+                        Thread.sleep(10000); // 10 Sekunden Verzögerung vor dem nächsten Zyklus
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-
-                // Warten auf Abschluss der Threads
-                for (Thread thread : threads) {
-                    try {
-                        thread.join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+            }).start();
+        }
     }
 
     private static List<BookingRequest> createTrip(HotelBookingService service, String[] hotelIds) {

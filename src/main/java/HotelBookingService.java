@@ -1,14 +1,18 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HotelBookingService {
     private Map<String, Hotel> hotels;
+    private ExecutorService executorService;
     private static final double TECHNICAL_FAILURE_PROBABILITY = 0.1; // Wahrscheinlichkeit eines technischen Fehlers
     private static final double BUSINESS_FAILURE_PROBABILITY = 0.2; // Wahrscheinlichkeit eines fachlichen Fehlers
 
     public HotelBookingService() {
         this.hotels = new HashMap<>();
+        this.executorService = Executors.newCachedThreadPool(); // Thread-Pool zur parallelen Verarbeitung
     }
 
     public void addHotel(Hotel hotel) {
