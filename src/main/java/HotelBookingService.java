@@ -11,6 +11,7 @@ public class HotelBookingService {
     private static final double BUSINESS_FAILURE_PROBABILITY = 0.2; // Wahrscheinlichkeit eines fachlichen Fehlers
 
     public HotelBookingService() {
+
         this.hotels = new HashMap<>();
         this.executorService = Executors.newCachedThreadPool(); // Thread-Pool zur parallelen Verarbeitung
     }
@@ -24,13 +25,17 @@ public class HotelBookingService {
             throw new Exception("Technischer Fehler bei der Buchung von Hotel " + hotelId);
         }
         Hotel hotel = hotels.get(hotelId);
-        if (hotel != null && hotel.bookRooms(numberOfRooms)) {
-            return "Buchung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName();
+        if (hotel == null) {
+            throw new Exception("Hotel nicht gefunden: " + hotelId);
         }
-        if (new Random().nextDouble() < BUSINESS_FAILURE_PROBABILITY) {
+        if (hotel.bookRooms(numberOfRooms)) {
+            if (new Random().nextDouble() < BUSINESS_FAILURE_PROBABILITY) {
+                throw new Exception("Fachlicher Fehler: Buchungsbestätigung nicht übermittelt");
+            }
+            return "Buchung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName();
+        } else {
             return "Fachlicher Fehler bei der Buchung von Hotel " + hotelId + ": Zimmer nicht verfügbar";
         }
-        return "Buchung fehlgeschlagen für " + numberOfRooms + " Zimmer im Hotel: " + hotelId;
     }
 
     public synchronized void cancelBooking(String hotelId, int numberOfRooms) {

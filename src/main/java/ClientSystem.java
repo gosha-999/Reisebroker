@@ -11,17 +11,17 @@ public class ClientSystem {
         HotelBookingService service1 = new HotelBookingService();
         HotelBookingService service2 = new HotelBookingService();
 
-        service1.addHotel(new Hotel("H001", "Hotel California", 50));
-        service1.addHotel(new Hotel("H002", "Hotel Nevada", 30));
-        service1.addHotel(new Hotel("H003", "Hotel Texas", 20));
-        service1.addHotel(new Hotel("H004", "Hotel Arizona", 40));
-        service1.addHotel(new Hotel("H005", "Hotel Colorado", 35));
+        service1.addHotel(new Hotel("H001", "Hotel 1", 50));
+        service1.addHotel(new Hotel("H002", "Hotel 2", 30));
+        service1.addHotel(new Hotel("H003", "Hotel 3", 20));
+        service1.addHotel(new Hotel("H004", "Hotel 4", 40));
+        service1.addHotel(new Hotel("H005", "Hotel 5", 35));
 
-        service2.addHotel(new Hotel("H006", "Hotel Florida", 40));
-        service2.addHotel(new Hotel("H007", "Hotel New York", 25));
-        service2.addHotel(new Hotel("H008", "Hotel Chicago", 35));
-        service2.addHotel(new Hotel("H009", "Hotel Michigan", 30));
-        service2.addHotel(new Hotel("H010", "Hotel Ohio", 20));
+        service2.addHotel(new Hotel("H006", "Hotel 6", 40));
+        service2.addHotel(new Hotel("H007", "Hotel 7", 25));
+        service2.addHotel(new Hotel("H008", "Hotel 8", 35));
+        service2.addHotel(new Hotel("H009", "Hotel 9", 30));
+        service2.addHotel(new Hotel("H010", "Hotel 10", 20));
 
         // Starten einer Endlosschleife zur kontinuierlichen Generierung von Buchungsanfragen
         while (true) {

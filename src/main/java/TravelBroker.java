@@ -36,8 +36,7 @@ public class TravelBroker {
 
         try {
             Logger.debug("Senden der Buchungsanfrage für Hotel " + request.getHotelId() + ", Zimmer: " + request.getNumberOfRooms() + ". Versuch: " + (attempt + 1));
-            MessageBroker.getInstance().sendMessage(request, this);
-            successfullyBooked.add(request);
+            MessageBroker.getInstance().sendMessage(request, this, attempt);
         } catch (Exception e) {
             Logger.error("Fehler bei der Buchung für Hotel: " + request.getHotelId() + " beim Versuch " + (attempt + 1) + ". Fehler: " + e.getMessage());
             try {
@@ -62,11 +61,22 @@ public class TravelBroker {
         Logger.info("Rollback abgeschlossen.");
     }
 
-    public synchronized void receiveMessage(String message) {
-        Logger.info("Erhaltene Nachricht: " + message);
-        bookingResults.add(message);
-        if (bookingResults.size() == successfullyBooked.size()) {
-            finalizeBooking();
+    public synchronized void receiveMessage(String message, BookingRequest request, int attempt) {
+        if (message.startsWith("Fehler: Technischer Fehler")) {
+            Logger.info("Erneuter Versuch für Hotel " + request.getHotelId() + " wegen technischem Fehler. Versuch: " + (attempt + 1));
+            attemptBooking(request, attempt + 1);
+        } else if (message.startsWith("Fehler: Fachlicher Fehler")) {
+            Logger.info("Erneuter Versuch für Hotel " + request.getHotelId() + " wegen fachlichem Fehler. Versuch: " + (attempt + 1));
+            attemptBooking(request, attempt + 1);
+        } else {
+            Logger.info("Erhaltene Nachricht: " + message);
+            bookingResults.add(message);
+            if (message.contains("erfolgreich")) {
+                successfullyBooked.add(request);
+            }
+            if (bookingResults.size() == successfullyBooked.size()) {
+                finalizeBooking();
+            }
         }
     }
 
