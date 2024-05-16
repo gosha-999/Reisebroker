@@ -42,7 +42,7 @@ public class HotelBookingService {
                 Logger.debug("HotelBookingService", "Antwort an MessageBroker für Hotel: " + request.getHotelId());
                 MessageBroker.getInstance().sendResponse(response, request, TravelBroker.getInstance(), attempt, isConfirmation);
             } catch (Exception e) {
-                Logger.debug("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel: " + request.getHotelId());
+                Logger.probelm("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel: " + request.getHotelId());
                 MessageBroker.getInstance().sendResponse("Fehler: " + e.getMessage(), request, TravelBroker.getInstance(), attempt, isConfirmation);
             }
         });

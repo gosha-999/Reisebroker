@@ -3,7 +3,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ClientSystem {
+public class
+ClientSystem {
     private static final int ARRIVAL_RATE = Integer.parseInt(Config.getProperty("arrivalRate"));
     private static AtomicInteger tripCounter = new AtomicInteger(1); // Zähler für die Reisen
 
@@ -70,7 +71,7 @@ public class ClientSystem {
         TravelBroker travelBroker = TravelBroker.getInstance();
         int tripNumber = tripCounter.getAndIncrement(); // Fortlaufende Nummer für die Reise
         String tripName = "Reise " + tripNumber;
-        Logger.info("ClientSystem", "Starte Anfragen für " + tripName);
+        Logger.hotelRequest("ClientSystem", "Starte Anfragen für " + tripName);
         travelBroker.bookTravel(requests);
     }
 }

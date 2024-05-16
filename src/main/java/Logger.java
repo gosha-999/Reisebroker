@@ -15,6 +15,8 @@ public class Logger {
     public static final String CYAN = "\u001B[36m";
     public static final String WHITE = "\u001B[37m";
 
+    public static final String ORANGE = "\u001B[38;2;255;165;0m";
+
     private static String getTimeStamp() {
         return dateFormat.format(new Date());
     }
@@ -30,4 +32,22 @@ public class Logger {
     public static void debug(String component, String message) {
         System.out.println(BLUE + "DEBUG [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
     }
+
+    public static void rollback(String component, String message) {
+        System.out.println(YELLOW + "ROLLBACK [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    }
+
+    public static void hotelRequest(String component, String message) {
+        System.out.println(PURPLE + "ANFRAGE [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    }
+
+    public static void requestAgain(String component, String message) {
+        System.out.println(CYAN + "ERNEUTE-ANFRAGE [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    }
+
+    public static void probelm(String component, String message) {
+        System.out.println(ORANGE + "[PROBLEM] "+BLUE + "DEBUG [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    }
+
+
 }
