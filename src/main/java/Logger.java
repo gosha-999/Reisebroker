@@ -15,39 +15,39 @@ public class Logger {
     public static final String CYAN = "\u001B[36m";
     public static final String WHITE = "\u001B[37m";
 
-    public static final String ORANGE = "\u001B[38;2;255;165;0m";
-
     private static String getTimeStamp() {
         return dateFormat.format(new Date());
     }
 
     public static void info(String component, String message) {
-        System.out.println(GREEN + "INFO [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+        String color = getColor(component);
+        System.out.println(color + "INFO [" + getTimeStamp() + "][" + component + "]: " + message + RESET);
     }
 
     public static void error(String component, String message) {
-        System.err.println(RED + "ERROR [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+        String color = getColor(component);
+        System.err.println(color + "ERROR [" + getTimeStamp() + "][" + component + "]: " + message + RESET);
     }
 
     public static void debug(String component, String message) {
-        System.out.println(BLUE + "DEBUG [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+        String color = getColor(component);
+        System.out.println(color + "DEBUG [" + getTimeStamp() + "][" + component + "]: " + message + RESET);
     }
 
-    public static void rollback(String component, String message) {
-        System.out.println(YELLOW + "ROLLBACK [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
+    private static String getColor(String component) {
+        switch (component) {
+            case "ClientSystem":
+                return GREEN;
+            case "TravelBroker":
+                return BLUE;
+            case "MessageBroker":
+                return PURPLE;
+            case "HotelBookingService":
+                return CYAN;
+            case "Hotel":
+                return YELLOW;
+            default:
+                return WHITE;
+        }
     }
-
-    public static void hotelRequest(String component, String message) {
-        System.out.println(PURPLE + "ANFRAGE [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
-    }
-
-    public static void requestAgain(String component, String message) {
-        System.out.println(CYAN + "ERNEUTE-ANFRAGE [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
-    }
-
-    public static void probelm(String component, String message) {
-        System.out.println(ORANGE + "[PROBLEM] "+BLUE + "DEBUG [" + getTimeStamp() + "][" + component + "][" + Thread.currentThread().getId() + "]: " + message + RESET);
-    }
-
-
 }

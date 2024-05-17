@@ -3,8 +3,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class
-ClientSystem {
+public class ClientSystem {
     private static final int ARRIVAL_RATE = Integer.parseInt(Config.getProperty("arrivalRate"));
     private static AtomicInteger tripCounter = new AtomicInteger(1); // Zähler für die Reisen
 
@@ -13,17 +12,17 @@ ClientSystem {
         HotelBookingService service1 = new HotelBookingService();
         HotelBookingService service2 = new HotelBookingService();
 
-        service1.addHotel(new Hotel("H001", "Hotel 1", 50));
-        service1.addHotel(new Hotel("H002", "Hotel 2", 30));
-        service1.addHotel(new Hotel("H003", "Hotel 3", 20));
-        service1.addHotel(new Hotel("H004", "Hotel 4", 40));
-        service1.addHotel(new Hotel("H005", "Hotel 5", 35));
+        service1.addHotel(new Hotel("H001", "Hotel California", 50));
+        service1.addHotel(new Hotel("H002", "Hotel Nevada", 30));
+        service1.addHotel(new Hotel("H003", "Hotel Texas", 20));
+        service1.addHotel(new Hotel("H004", "Hotel Arizona", 40));
+        service1.addHotel(new Hotel("H005", "Hotel Colorado", 35));
 
-        service2.addHotel(new Hotel("H006", "Hotel 6", 40));
-        service2.addHotel(new Hotel("H007", "Hotel 7", 25));
-        service2.addHotel(new Hotel("H008", "Hotel 8", 35));
-        service2.addHotel(new Hotel("H009", "Hotel 9", 30));
-        service2.addHotel(new Hotel("H010", "Hotel 10", 20));
+        service2.addHotel(new Hotel("H006", "Hotel Florida", 40));
+        service2.addHotel(new Hotel("H007", "Hotel New York", 25));
+        service2.addHotel(new Hotel("H008", "Hotel Chicago", 35));
+        service2.addHotel(new Hotel("H009", "Hotel Michigan", 30));
+        service2.addHotel(new Hotel("H010", "Hotel Ohio", 20));
 
         // Liste aller Hotels mit den zugehörigen Services
         List<Hotel> allHotels = new ArrayList<>();
@@ -71,7 +70,7 @@ ClientSystem {
         TravelBroker travelBroker = TravelBroker.getInstance();
         int tripNumber = tripCounter.getAndIncrement(); // Fortlaufende Nummer für die Reise
         String tripName = "Reise " + tripNumber;
-        Logger.hotelRequest("ClientSystem", "Starte Anfragen für " + tripName);
+        Logger.info("ClientSystem", "Starte Anfragen für " + tripName);
         travelBroker.bookTravel(requests);
     }
 }

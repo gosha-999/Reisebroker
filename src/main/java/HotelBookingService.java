@@ -10,10 +10,8 @@ public class HotelBookingService {
     private ExecutorService executorService;
     private static final double TECHNICAL_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("technicalFailureProbability"));
     private static final double BUSINESS_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("businessFailureProbability"));
-    private static final int PROCESSING_TIME = Integer.parseInt(Config.getProperty("processingTime"));
 
     public HotelBookingService() {
-
         this.hotels = new HashMap<>();
         this.executorService = Executors.newCachedThreadPool(); // Thread-Pool zur parallelen Verarbeitung
     }
@@ -42,7 +40,7 @@ public class HotelBookingService {
                 Logger.debug("HotelBookingService", "Antwort an MessageBroker für Hotel: " + request.getHotelId());
                 MessageBroker.getInstance().sendResponse(response, request, TravelBroker.getInstance(), attempt, isConfirmation);
             } catch (Exception e) {
-                Logger.probelm("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel: " + request.getHotelId());
+                Logger.debug("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel: " + request.getHotelId());
                 MessageBroker.getInstance().sendResponse("Fehler: " + e.getMessage(), request, TravelBroker.getInstance(), attempt, isConfirmation);
             }
         });
@@ -62,7 +60,7 @@ public class HotelBookingService {
             }
             return "Buchung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName();
         } else {
-            return "Fachlicher Fehler bei der Buchung von Hotel " + hotelId + ": Zimmer nicht verfügbar";
+            return "Fehler: Zimmer nicht verfügbar";
         }
     }
 
@@ -75,7 +73,7 @@ public class HotelBookingService {
             throw new Exception("Hotel nicht gefunden: " + hotelId);
         }
         if (hotel.getAvailableRooms() < numberOfRooms) {
-            throw new Exception("Fachlicher Fehler: Zimmer nicht verfügbar");
+            throw new Exception("Fehler: Zimmer nicht verfügbar");
         }
         return "Bestätigung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName();
     }
