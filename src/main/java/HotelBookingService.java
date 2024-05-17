@@ -6,11 +6,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HotelBookingService {
-    private String name;
     private Map<String, Hotel> hotels;
     private ExecutorService executorService;
-    private static final double TECHNICAL_FAILURE_PROBABILITY = 0.1; // Beispielwert für technischen Fehler
-    private static final double BUSINESS_FAILURE_PROBABILITY = 0.2; // Beispielwert für fachlichen Fehler
+    private static final double TECHNICAL_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("technicalFailureProbability"));
+    private static final double BUSINESS_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("businessFailureProbability"));
+    private static final int PROCESSING_TIME = Integer.parseInt(Config.getProperty("processingTime"));
 
     public HotelBookingService() {
         this.hotels = new HashMap<>();
@@ -32,6 +32,7 @@ public class HotelBookingService {
     public void processBookingRequest(BookingRequest request, int attempt, boolean isConfirmation) {
         executorService.submit(() -> {
             try {
+                Thread.sleep(PROCESSING_TIME); // Simulierte Bearbeitungszeit
                 String response;
                 if (isConfirmation) {
                     response = confirmBooking(request.getHotelId(), request.getNumberOfRooms());
@@ -40,6 +41,8 @@ public class HotelBookingService {
                 }
                 Logger.debug("HotelBookingService", "Antwort an MessageBroker für Hotel " + request.getHotelId() + ": " + response);
                 MessageBroker.getInstance().sendResponse(response, request, TravelBroker.getInstance(), attempt, request.getContext(), isConfirmation);
+            } catch (InterruptedException e) {
+                Logger.error("HotelBookingService", "Bearbeitung unterbrochen für Hotel " + request.getHotelId());
             } catch (Exception e) {
                 Logger.debug("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel " + request.getHotelId() + ". Fehler: " + e.getMessage());
                 MessageBroker.getInstance().sendResponse("Fehler: Technischer Fehler", request, TravelBroker.getInstance(), attempt, request.getContext(), isConfirmation);
