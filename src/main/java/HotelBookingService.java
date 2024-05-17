@@ -6,10 +6,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HotelBookingService {
+    private String name;
     private Map<String, Hotel> hotels;
     private ExecutorService executorService;
-    private static final double TECHNICAL_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("technicalFailureProbability"));
-    private static final double BUSINESS_FAILURE_PROBABILITY = Double.parseDouble(Config.getProperty("businessFailureProbability"));
+    private static final double TECHNICAL_FAILURE_PROBABILITY = 0.1; // Beispielwert für technischen Fehler
+    private static final double BUSINESS_FAILURE_PROBABILITY = 0.2; // Beispielwert für fachlichen Fehler
 
     public HotelBookingService() {
         this.hotels = new HashMap<>();
@@ -37,11 +38,11 @@ public class HotelBookingService {
                 } else {
                     response = bookHotelRooms(request.getHotelId(), request.getNumberOfRooms());
                 }
-                Logger.debug("HotelBookingService", "Antwort an MessageBroker für Hotel: " + request.getHotelId());
-                MessageBroker.getInstance().sendResponse(response, request, TravelBroker.getInstance(), attempt, isConfirmation);
+                Logger.debug("HotelBookingService", "Antwort an MessageBroker für Hotel " + request.getHotelId() + ": " + response);
+                MessageBroker.getInstance().sendResponse(response, request, TravelBroker.getInstance(), attempt, request.getContext(), isConfirmation);
             } catch (Exception e) {
-                Logger.debug("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel: " + request.getHotelId());
-                MessageBroker.getInstance().sendResponse("Fehler: " + e.getMessage(), request, TravelBroker.getInstance(), attempt, isConfirmation);
+                Logger.debug("HotelBookingService", "Fehler beim Verarbeiten der Buchung für Hotel " + request.getHotelId() + ". Fehler: " + e.getMessage());
+                MessageBroker.getInstance().sendResponse("Fehler: Technischer Fehler", request, TravelBroker.getInstance(), attempt, request.getContext(), isConfirmation);
             }
         });
     }
@@ -56,10 +57,13 @@ public class HotelBookingService {
         }
         if (hotel.bookRooms(numberOfRooms)) {
             if (new Random().nextDouble() < BUSINESS_FAILURE_PROBABILITY) {
+                // Fachlicher Fehler: Buchung erfolgreich, aber keine Bestätigung gesendet
                 throw new Exception("Fachlicher Fehler: Buchungsbestätigung nicht übermittelt");
             }
-            return "Buchung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName();
+            Logger.info("HotelBookingService", "Buchung erfolgreich für " + numberOfRooms + " Zimmer im Hotel " + hotel.getName() + ". Verbleibende Zimmer: " + hotel.getAvailableRooms());
+            return "Buchung erfolgreich für " + numberOfRooms + " Zimmer im Hotel " + hotel.getName();
         } else {
+            Logger.info("HotelBookingService", "Zimmer im Hotel " + hotelId + " nicht verfügbar.");
             return "Fehler: Zimmer nicht verfügbar";
         }
     }
@@ -72,17 +76,15 @@ public class HotelBookingService {
         if (hotel == null) {
             throw new Exception("Hotel nicht gefunden: " + hotelId);
         }
-        if (hotel.getAvailableRooms() < numberOfRooms) {
-            throw new Exception("Fehler: Zimmer nicht verfügbar");
-        }
-        return "Bestätigung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName();
+        Logger.info("HotelBookingService", "Bestätigung erfolgreich für " + numberOfRooms + " Zimmer im Hotel " + hotel.getName() + ". Verbleibende Zimmer: " + hotel.getAvailableRooms());
+        return "Bestätigung erfolgreich für " + numberOfRooms + " Zimmer im Hotel " + hotel.getName();
     }
 
     public synchronized void cancelBooking(String hotelId, int numberOfRooms) {
         Hotel hotel = hotels.get(hotelId);
         if (hotel != null) {
             hotel.cancelBooking(numberOfRooms);
-            Logger.info("HotelBookingService", "Stornierung erfolgreich für " + numberOfRooms + " Zimmer im Hotel: " + hotel.getName());
+            Logger.info("HotelBookingService", "Stornierung erfolgreich für " + numberOfRooms + " Zimmer im Hotel " + hotel.getName() + ". Verbleibende Zimmer: " + hotel.getAvailableRooms());
         } else {
             Logger.error("HotelBookingService", "Hotel nicht gefunden: " + hotelId);
         }

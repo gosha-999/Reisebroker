@@ -9,16 +9,16 @@ public class Hotel {
         this.availableRooms = availableRooms;
     }
 
-    public synchronized boolean bookRooms(int number) {
-        if (availableRooms >= number) {
-            availableRooms -= number;
+    public synchronized boolean bookRooms(int numberOfRooms) {
+        if (availableRooms >= numberOfRooms) {
+            availableRooms -= numberOfRooms;
             return true;
         }
         return false;
     }
 
-    public synchronized void cancelBooking(int number) {
-        availableRooms += number; // Zimmeranzahl wieder erhöhen
+    public synchronized void cancelBooking(int numberOfRooms) {
+        availableRooms += numberOfRooms;
     }
 
     public String getId() {

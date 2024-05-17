@@ -1,6 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientSystem {
@@ -57,11 +55,18 @@ public class ClientSystem {
     private static List<BookingRequest> createTrip(List<HotelBookingService> services, List<Hotel> allHotels) {
         Random random = new Random();
         List<BookingRequest> requests = new ArrayList<>();
-        for (int i = 0; i < 5; i++) { // Fünf verschiedene Hotels pro Reise
+        Set<String> usedHotelIds = new HashSet<>();
+
+        while (requests.size() < 5) { // Fünf verschiedene Hotels pro Reise
             Hotel hotel = allHotels.get(random.nextInt(allHotels.size()));
-            int rooms = random.nextInt(5) + 1; // Zufällige Anzahl von Zimmern (1 bis 5)
-            HotelBookingService service = services.stream().filter(s -> s.hasHotel(hotel)).findFirst().orElse(null);
-            requests.add(new BookingRequest(service, hotel.getId(), rooms));
+            if (!usedHotelIds.contains(hotel.getId())) {
+                int rooms = random.nextInt(5) + 1; // Zufällige Anzahl von Zimmern (1 bis 5)
+                HotelBookingService service = services.stream().filter(s -> s.hasHotel(hotel)).findFirst().orElse(null);
+                if (service != null) {
+                    requests.add(new BookingRequest(service, hotel.getId(), rooms, null));
+                    usedHotelIds.add(hotel.getId());
+                }
+            }
         }
         return requests;
     }
