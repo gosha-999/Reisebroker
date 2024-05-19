@@ -59,7 +59,7 @@ public class HotelBookingService {
             throw new Exception("Hotel nicht gefunden: " + hotelId);
         }
         if (hotel.bookRooms(numberOfRooms)) {
-            if (new Random().nextDouble() < BUSINESS_FAILURE_PROBABILITY) {
+            if (generateGaussianRandomNumbers() < BUSINESS_FAILURE_PROBABILITY) {
                 // Fachlicher Fehler: Buchung erfolgreich, aber keine Bestätigung gesendet
                 throw new Exception("Fachlicher Fehler: Buchungsbestätigung nicht übermittelt");
             }
