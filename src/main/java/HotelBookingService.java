@@ -51,7 +51,7 @@ public class HotelBookingService {
     }
 
     private synchronized String bookHotelRooms(String hotelId, int numberOfRooms) throws Exception {
-        if (new Random().nextDouble() < TECHNICAL_FAILURE_PROBABILITY) {
+        if (generateGaussianRandomNumbers() < TECHNICAL_FAILURE_PROBABILITY) {
             throw new Exception("Technischer Fehler bei der Buchung von Hotel " + hotelId);
         }
         Hotel hotel = hotels.get(hotelId);
@@ -72,7 +72,7 @@ public class HotelBookingService {
     }
 
     private synchronized String confirmBooking(String hotelId, int numberOfRooms) throws Exception {
-        if (new Random().nextDouble() < TECHNICAL_FAILURE_PROBABILITY) {
+        if (generateGaussianRandomNumbers() < TECHNICAL_FAILURE_PROBABILITY) {
             throw new Exception("Technischer Fehler bei der Bestätigung von Hotel " + hotelId);
         }
         Hotel hotel = hotels.get(hotelId);
@@ -92,4 +92,14 @@ public class HotelBookingService {
             Logger.error("HotelBookingService", "Hotel nicht gefunden: " + hotelId);
         }
     }
+
+    public double generateGaussianRandomNumbers(){
+        double g= new Random().nextGaussian(0.5,0.15);
+        return Math.max(0,Math.min(1,g));
+    }
+
+
+
+
+
 }

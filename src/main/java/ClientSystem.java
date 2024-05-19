@@ -10,17 +10,17 @@ public class ClientSystem {
         HotelBookingService service1 = new HotelBookingService();
         HotelBookingService service2 = new HotelBookingService();
 
-        service1.addHotel(new Hotel("H001", "Hotel California", 50));
-        service1.addHotel(new Hotel("H002", "Hotel Nevada", 30));
-        service1.addHotel(new Hotel("H003", "Hotel Texas", 20));
-        service1.addHotel(new Hotel("H004", "Hotel Arizona", 40));
-        service1.addHotel(new Hotel("H005", "Hotel Colorado", 35));
+        service1.addHotel(new Hotel("H001", "Hotel California 1", 50));
+        service1.addHotel(new Hotel("H002", "Hotel Nevada 2", 30));
+        service1.addHotel(new Hotel("H003", "Hotel Texas 3", 20));
+        service1.addHotel(new Hotel("H004", "Hotel Arizona 4", 40));
+        service1.addHotel(new Hotel("H005", "Hotel Colorado 5", 35));
 
-        service2.addHotel(new Hotel("H006", "Hotel Florida", 40));
-        service2.addHotel(new Hotel("H007", "Hotel New York", 25));
-        service2.addHotel(new Hotel("H008", "Hotel Chicago", 35));
-        service2.addHotel(new Hotel("H009", "Hotel Michigan", 30));
-        service2.addHotel(new Hotel("H010", "Hotel Ohio", 20));
+        service2.addHotel(new Hotel("H006", "Hotel Florida 6", 40));
+        service2.addHotel(new Hotel("H007", "Hotel New York 7", 25));
+        service2.addHotel(new Hotel("H008", "Hotel Chicago 8", 35));
+        service2.addHotel(new Hotel("H009", "Hotel Michigan 9", 30));
+        service2.addHotel(new Hotel("H010", "Hotel Ohio 10", 20));
 
         // Liste aller Hotels mit den zugehörigen Services
         List<Hotel> allHotels = new ArrayList<>();
